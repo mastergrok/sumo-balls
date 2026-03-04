@@ -2,8 +2,9 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>SUMO BALLS</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Boogaloo&family=Zen+Dots&family=Nunito:wght@700;900&display=swap');
 :root {
@@ -11,66 +12,65 @@
   --green:#2ecc8a; --text:#f0e8d0; --muted:#7a6a50;
 }
 *{margin:0;padding:0;box-sizing:border-box;}
+html,body{width:100%;min-height:100%;overflow-x:hidden;}
 body{
   background:var(--bg); color:var(--text); font-family:'Nunito',sans-serif;
-  min-height:100vh; display:flex; flex-direction:column; align-items:center;
+  display:flex; flex-direction:column; align-items:center;
   background-image:
     radial-gradient(ellipse 80% 50% at 50% 0%,rgba(180,120,20,.18) 0%,transparent 70%),
     repeating-linear-gradient(0deg,transparent,transparent 40px,rgba(255,255,255,.012) 40px,rgba(255,255,255,.012) 41px),
     repeating-linear-gradient(90deg,transparent,transparent 40px,rgba(255,255,255,.012) 40px,rgba(255,255,255,.012) 41px);
 }
 h1{
-  font-family:'Zen Dots',cursive; font-size:2.2rem; letter-spacing:6px;
+  font-family:'Zen Dots',cursive; font-size:clamp(1.2rem,5vw,2.2rem); letter-spacing:4px;
   color:var(--gold); text-shadow:0 0 30px rgba(245,200,66,.6),0 2px 0 #8a6010;
-  margin:22px 0 4px; text-transform:uppercase;
+  margin:14px 0 2px; text-transform:uppercase;
 }
-.subtitle{font-size:.72rem;color:var(--muted);letter-spacing:3px;text-transform:uppercase;margin-bottom:18px;}
-.game-wrap{display:flex;gap:18px;align-items:flex-start;justify-content:center;width:100%;max-width:920px;padding:0 14px 40px;flex-wrap:wrap;}
-.arena-section{display:flex;flex-direction:column;align-items:center;gap:10px;}
-.arena-frame{position:relative;width:380px;height:380px;}
-#threeCanvas{position:absolute;top:0;left:0;filter:drop-shadow(0 8px 40px rgba(0,0,0,.9));}
-.phase-pill{font-family:'Boogaloo',cursive;font-size:1.05rem;letter-spacing:2px;padding:7px 22px;border-radius:30px;text-transform:uppercase;transition:all .3s;}
+.subtitle{font-size:clamp(.55rem,.7vw,.72rem);color:var(--muted);letter-spacing:3px;text-transform:uppercase;margin-bottom:12px;}
+.game-wrap{display:flex;gap:14px;align-items:flex-start;justify-content:center;width:100%;max-width:920px;padding:0 10px 30px;flex-wrap:wrap;}
+.arena-section{display:flex;flex-direction:column;align-items:center;gap:8px;flex-shrink:0;}
+.arena-frame{position:relative;}
+#threeCanvas{display:block;filter:drop-shadow(0 8px 40px rgba(0,0,0,.9));}
+.phase-pill{font-family:'Boogaloo',cursive;font-size:clamp(.85rem,2.5vw,1.05rem);letter-spacing:2px;padding:6px 18px;border-radius:30px;text-transform:uppercase;transition:all .3s;}
 .pill-bet{background:rgba(245,200,66,.12);color:var(--gold);border:1px solid rgba(245,200,66,.3);}
 .pill-fight{background:rgba(224,48,48,.15);color:var(--red);border:1px solid rgba(224,48,48,.4);animation:blink .7s infinite;}
 .pill-win{background:rgba(46,204,138,.13);color:var(--green);border:1px solid rgba(46,204,138,.3);}
 .pill-lose{background:rgba(224,48,48,.13);color:var(--red);border:1px solid rgba(224,48,48,.3);}
 .pill-none{background:rgba(120,100,70,.15);color:var(--muted);border:1px solid rgba(120,100,70,.25);}
 @keyframes blink{0%,100%{opacity:1}50%{opacity:.55}}
-.cdbar-wrap{width:380px;height:6px;background:rgba(255,255,255,.07);border-radius:4px;overflow:hidden;}
+.cdbar-wrap{height:6px;background:rgba(255,255,255,.07);border-radius:4px;overflow:hidden;}
 #cdBar{height:100%;background:var(--gold);border-radius:4px;width:100%;transition:width 1s linear,background .3s;}
-.sidebar{display:flex;flex-direction:column;gap:12px;width:255px;}
-.card{background:var(--card);border:1px solid rgba(255,255,255,.06);border-radius:16px;padding:14px 16px;}
-.clabel{font-size:.65rem;text-transform:uppercase;letter-spacing:2px;color:var(--muted);margin-bottom:8px;}
-.bankroll-num{font-family:'Zen Dots',cursive;font-size:2.1rem;color:var(--gold);text-shadow:0 0 14px rgba(245,200,66,.35);line-height:1;}
-.round-row{display:flex;justify-content:space-between;align-items:center;margin-top:8px;font-size:.75rem;color:var(--muted);}
+.sidebar{display:flex;flex-direction:column;gap:10px;width:240px;}
+.card{background:var(--card);border:1px solid rgba(255,255,255,.06);border-radius:14px;padding:12px 14px;}
+.clabel{font-size:.62rem;text-transform:uppercase;letter-spacing:2px;color:var(--muted);margin-bottom:7px;}
+.bankroll-num{font-family:'Zen Dots',cursive;font-size:clamp(1.5rem,4vw,2.1rem);color:var(--gold);text-shadow:0 0 14px rgba(245,200,66,.35);line-height:1;}
+.round-row{display:flex;justify-content:space-between;align-items:center;margin-top:7px;font-size:.72rem;color:var(--muted);}
 .hist-dots{display:flex;gap:4px;flex-wrap:wrap;}
 .hdot{width:9px;height:9px;border-radius:50%;flex-shrink:0;}
-.fighters{display:flex;gap:8px;}
+.fighters{display:flex;gap:7px;}
 .fcard{
   flex:1;background:rgba(255,255,255,.03);border:2px solid rgba(255,255,255,.08);
-  border-radius:13px;padding:10px 6px 8px;text-align:center;cursor:pointer;
+  border-radius:12px;padding:8px 5px 7px;text-align:center;cursor:pointer;
   transition:all .22s;user-select:none;position:relative;
 }
 .fcard:hover{background:rgba(255,255,255,.07);border-color:rgba(245,200,66,.4);}
 .fcard.picked{
   border-color:var(--gold);
   background:rgba(245,200,66,.18);
-  box-shadow:0 0 0 2px rgba(245,200,66,.5), 0 0 24px rgba(245,200,66,.4);
+  box-shadow:0 0 0 2px rgba(245,200,66,.5),0 0 24px rgba(245,200,66,.4);
   transform:translateY(-2px);
 }
 .fcard.picked::after{
-  content:'✓';
-  position:absolute;top:5px;right:7px;
-  font-size:.85rem;color:var(--gold);font-weight:900;
+  content:'✓';position:absolute;top:4px;right:6px;
+  font-size:.82rem;color:var(--gold);font-weight:900;
   text-shadow:0 0 8px rgba(245,200,66,.8);
 }
 .fcard.locked-loser{pointer-events:none;opacity:.32;filter:grayscale(60%);}
 .fcard.locked-winner{pointer-events:none;}
-.fcard canvas{display:block;margin:0 auto 6px;}
-.fname{font-family:'Boogaloo',cursive;font-size:.95rem;margin-bottom:2px;color:var(--text);}
-.fodds{font-size:.72rem;color:var(--green);font-weight:900;}
-.fmystery{font-size:.62rem;color:var(--muted);margin-top:2px;}
-/* Live bet strip — shown during fight */
+.fcard canvas{display:block;margin:0 auto 5px;}
+.fname{font-family:'Boogaloo',cursive;font-size:.88rem;margin-bottom:2px;color:var(--text);}
+.fodds{font-size:.70rem;color:var(--green);font-weight:900;}
+.fmystery{font-size:.60rem;color:var(--muted);margin-top:2px;}
 .bet-live{
   display:none;
   background:rgba(245,200,66,.10);border:1px solid rgba(245,200,66,.25);
@@ -79,27 +79,31 @@ h1{
 .bet-live-label{font-size:.62rem;text-transform:uppercase;letter-spacing:2px;color:var(--muted);margin-bottom:3px;}
 .bet-live-amount{font-family:'Zen Dots',cursive;font-size:1.3rem;color:var(--gold);text-shadow:0 0 10px rgba(245,200,66,.4);}
 .bet-live-on{font-size:.72rem;color:var(--muted);margin-top:2px;}
-.bet-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px;}
+.bet-grid{display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-top:7px;}
 .bet-input{
   grid-column:1/-1;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);
-  border-radius:10px;color:var(--text);font-family:'Nunito',sans-serif;font-size:1.1rem;
-  font-weight:700;padding:8px 12px;outline:none;width:100%;
+  border-radius:9px;color:var(--text);font-family:'Nunito',sans-serif;font-size:1rem;
+  font-weight:700;padding:7px 11px;outline:none;width:100%;
 }
 .bet-input:focus{border-color:var(--gold);}
 .qb{
-  background:rgba(255,255,255,.06);border:none;color:#bba;border-radius:8px;
-  padding:5px 0;font-size:.72rem;font-weight:900;cursor:pointer;transition:all .15s;
-  font-family:'Nunito',sans-serif;letter-spacing:.5px;
+  background:rgba(255,255,255,.06);border:none;color:#bba;border-radius:7px;
+  padding:5px 0;font-size:.70rem;font-weight:900;cursor:pointer;transition:all .15s;
+  font-family:'Nunito',sans-serif;
 }
 .qb:hover{background:var(--red);color:#fff;}
-.main-btn{width:100%;padding:13px;border-radius:13px;border:none;font-family:'Boogaloo',cursive;font-size:1.2rem;letter-spacing:2px;cursor:pointer;transition:all .2s;text-transform:uppercase;}
+.main-btn{width:100%;padding:11px;border-radius:12px;border:none;font-family:'Boogaloo',cursive;font-size:1.1rem;letter-spacing:2px;cursor:pointer;transition:all .2s;text-transform:uppercase;}
 .main-btn.go{background:linear-gradient(135deg,#e03030,#a01818);color:#fff;box-shadow:0 4px 22px rgba(224,48,48,.45);}
 .main-btn.go:hover{transform:translateY(-2px);box-shadow:0 6px 28px rgba(224,48,48,.6);}
 .main-btn.go:disabled{opacity:.35;transform:none;cursor:not-allowed;}
 .main-btn.next{background:linear-gradient(135deg,#2ecc8a,#189a5e);color:#0a1a10;box-shadow:0 4px 20px rgba(46,204,138,.35);}
 .main-btn.next:hover{transform:translateY(-2px);}
-.result-msg{font-family:'Boogaloo',cursive;font-size:1.45rem;text-align:center;min-height:34px;letter-spacing:1px;}
+.result-msg{font-family:'Boogaloo',cursive;font-size:1.35rem;text-align:center;min-height:32px;letter-spacing:1px;}
 .r-win{color:var(--green);} .r-lose{color:var(--red);} .r-skip{color:var(--muted);}
+@media(max-width:640px){
+  .game-wrap{flex-direction:column;align-items:center;gap:10px;padding:0 8px 20px;}
+  .sidebar{width:100%;max-width:420px;}
+}
 </style>
 </head>
 <body>
@@ -163,11 +167,33 @@ h1{
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
+// ── Telegram: expand to fullscreen immediately
+if (window.Telegram && window.Telegram.WebApp) {
+  Telegram.WebApp.ready();
+  Telegram.WebApp.expand();
+}
+
 // ══════════════════════════════════════════
-//  THREE.JS SETUP
+//  THREE.JS SETUP — dynamic size
 // ══════════════════════════════════════════
-const W = 380, H = 380;
+function getArenaSize() {
+  // On mobile (<640px wide): fill available width minus padding
+  // On desktop: cap at 420px
+  const maxW = Math.min(window.innerWidth - 20, 420);
+  const size = window.innerWidth < 640 ? maxW : 380;
+  return Math.floor(size);
+}
+
+let W = getArenaSize(), H = W;
 const canvas = document.getElementById('threeCanvas');
+canvas.width = W; canvas.height = H;
+canvas.style.width = W + 'px'; canvas.style.height = H + 'px';
+
+// Also size the arena-frame and cdbar-wrap to match
+document.querySelector('.arena-frame').style.width = W + 'px';
+document.querySelector('.arena-frame').style.height = H + 'px';
+document.querySelector('.cdbar-wrap').style.width = W + 'px';
+
 const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: false });
 renderer.setSize(W, H);
 renderer.shadowMap.enabled = true;
