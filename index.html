@@ -178,61 +178,78 @@ h1{
 if (window.Telegram && window.Telegram.WebApp) {
   Telegram.WebApp.ready();
   Telegram.WebApp.expand();
-  // New API for full fullscreen (Telegram 7.8+)
   if (Telegram.WebApp.requestFullscreen) Telegram.WebApp.requestFullscreen();
 }
 
 // ══════════════════════════════════════════
 //  DYNAMIC LAYOUT — fits any window size
 // ══════════════════════════════════════════
-function computeLayout() {
+function applyLayout() {
   const vw = window.innerWidth;
   const vh = window.innerHeight;
-  const headerH = document.querySelector('.header').offsetHeight || 44;
-  const available = vh - headerH - 16; // total height for game-wrap
+  const headerH = document.querySelector('.header').offsetHeight || 40;
+  const gap = 8;
+  const pad = 16;
 
-  let arenaSize, sidebarW, horizontal;
+  let arenaSize, sidebarW;
+  const wrap = document.querySelector('.game-wrap');
+  const sidebar = document.querySelector('.sidebar');
 
-  if (vw >= 640) {
-    // Wide: arena left, sidebar right
-    horizontal = true;
-    sidebarW = Math.min(240, vw * 0.35);
-    arenaSize = Math.min(vw - sidebarW - 32, available);
+  if (vw >= 580) {
+    // ── HORIZONTAL: arena left, sidebar right, fills full height
+    const availH = vh - headerH - pad;
+    sidebarW = Math.max(200, Math.min(260, vw * 0.32));
+    arenaSize = Math.min(vw - sidebarW - gap - pad, availH);
+    wrap.style.flexDirection = 'row';
+    wrap.style.alignItems = 'flex-start';
+    wrap.style.height = availH + 'px';
+    sidebar.style.width = sidebarW + 'px';
+    sidebar.style.maxHeight = availH + 'px';
+    sidebar.style.overflowY = 'auto';
   } else {
-    // Narrow (Telegram Desktop panel, mobile): arena top, sidebar below
-    horizontal = false;
-    arenaSize = Math.min(vw - 16, available * 0.52);
-    sidebarW = vw - 16;
+    // ── VERTICAL: arena top, sidebar below, no scroll
+    const availH = vh - headerH - pad;
+    arenaSize = Math.min(vw - pad, availH * 0.50);
+    sidebarW = vw - pad;
+    wrap.style.flexDirection = 'column';
+    wrap.style.alignItems = 'center';
+    wrap.style.height = 'auto';
+    sidebar.style.width = sidebarW + 'px';
+    sidebar.style.maxHeight = (availH - arenaSize - gap * 4) + 'px';
+    sidebar.style.overflowY = 'auto';
   }
 
   arenaSize = Math.floor(arenaSize);
 
-  // Apply layout
-  const wrap = document.querySelector('.game-wrap');
-  wrap.style.flexDirection = horizontal ? 'row' : 'column';
-  wrap.style.alignItems = horizontal ? 'flex-start' : 'center';
+  // Resize Three.js renderer + canvas
+  canvas.width = arenaSize; canvas.height = arenaSize;
+  canvas.style.width = arenaSize + 'px'; canvas.style.height = arenaSize + 'px';
+  document.querySelector('.arena-frame').style.width = arenaSize + 'px';
+  document.querySelector('.arena-frame').style.height = arenaSize + 'px';
+  document.querySelector('.cdbar-wrap').style.width = arenaSize + 'px';
 
-  const sidebar = document.querySelector('.sidebar');
-  sidebar.style.width = sidebarW + 'px';
-  sidebar.style.maxHeight = horizontal ? available + 'px' : (available - arenaSize - 20) + 'px';
+  if (typeof renderer !== 'undefined') {
+    renderer.setSize(arenaSize, arenaSize);
+    if (typeof camera !== 'undefined') {
+      camera.aspect = 1;
+      camera.updateProjectionMatrix();
+    }
+  }
 
   return arenaSize;
 }
 
-function getArenaSize() {
-  return computeLayout();
-}
+// Run once immediately, then again after Telegram finishes expanding
+let W = Math.min(window.innerWidth - 16, 400);
 
-let W = getArenaSize(), H = W;
 const canvas = document.getElementById('threeCanvas');
 canvas.width = W; canvas.height = W;
 canvas.style.width = W + 'px'; canvas.style.height = W + 'px';
 document.querySelector('.arena-frame').style.width = W + 'px';
 document.querySelector('.arena-frame').style.height = W + 'px';
 document.querySelector('.cdbar-wrap').style.width = W + 'px';
-
 const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: false });
-renderer.setSize(W, H);
+renderer.setSize(W, W);
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
@@ -240,9 +257,14 @@ renderer.setClearColor(0x1a1008, 1);
 
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x1a1008);
-const camera = new THREE.PerspectiveCamera(48, W/H, 0.1, 200);
+const camera = new THREE.PerspectiveCamera(48, 1, 0.1, 200);
 camera.position.set(0, 15, 15);
 camera.lookAt(0, 0, 0);
+
+// Now safe to call applyLayout — renderer and camera both exist
+applyLayout();
+setTimeout(() => { W = applyLayout(); }, 300);
+setTimeout(() => { W = applyLayout(); }, 800);
 
 // Gentle camera orbit
 let camAngle = 0;
@@ -1089,6 +1111,7 @@ function qbet(v){ document.getElementById('betAmtInput').value=Math.min(v,bankro
 function qbetHalf(){ document.getElementById('betAmtInput').value=Math.max(1,Math.floor(bankroll/2)); }
 function qbetAll(){ document.getElementById('betAmtInput').value=bankroll; }
 
+window.addEventListener('resize', () => { W = applyLayout(); });
 startRound();
 </script>
 </body>
